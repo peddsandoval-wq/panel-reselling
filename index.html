@@ -197,7 +197,7 @@ function renderTabla(data){
     <span class="${f.infGen?'ok':'pendiente'}">${f.infGen?'OK':'Pendiente'}</span>
     ${f.infGen ? `<a href="docs/informe_${i}.pdf" target="_blank">📄</a>` : ""}
 </td>
-        <td>${ (f.factura && f.infGen) ? '<span class="pdf-icon">📄</span>' : '' }</td>
+      
       </tr>`;
   });
   document.getElementById("tablaFacturas").innerHTML = html;
