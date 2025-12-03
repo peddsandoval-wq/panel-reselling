@@ -2,204 +2,225 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Panel Reselling – Gestión de Facturación</title>
+<title>Panel Reselling – Gestión de Facturas</title>
 
 <style>
-  body {font-family: Arial, sans-serif; background:#f8f9fa; padding:20px;}
-  h2{color:#1a3d7c;}
+body{
+  font-family: Arial, sans-serif;
+  padding:20px;
+  background:#f5f7fa;
+  color:#2a2a2a;
+}
 
-  .controls{
-    margin-bottom:20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;
-  }
-  .controls select,.controls input{padding:6px 10px;font-size:14px;}
-  .controls button{
-    padding:8px 14px;background:#1a3d7c;color:#fff;border:none;border-radius:4px;cursor:pointer;
-  }
-  .controls button:hover{background:#16345d;}
+h2{
+  color:#0F1C3F;
+  font-size:22px;
+  font-weight:700;
+}
 
-  table{width:100%;border-collapse:collapse;margin-top:10px;}
-  th,td{border:1px solid #ccc;padding:8px;text-align:center;}
-  th{background:#1a3d7c;color:white;}
+/* ==================== FILTROS ==================== */
+.controls{
+  margin-bottom:18px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.controls select,.controls input{
+  padding:8px 10px;
+  border-radius:5px;
+  border:1px solid #d0d4dc;
+}
+.controls button{
+  background:#102B6B;
+  color:white;
+  border:none;
+  padding:8px 14px;
+  border-radius:5px;
+  cursor:pointer;
+}
+.controls button:hover{background:#0C214F}
 
-  /* Nuevos semáforos mejorados */
-  .semaforo{
-      padding:6px 14px;border-radius:50px;font-size:13px;font-weight:600;color:#fff;
-      display:inline-block;min-width:70px;transition:.25s;
-  }
-  .ok{
-      background:linear-gradient(135deg,#3bd57f,#10a85f);
-      box-shadow:0px 0px 6px rgba(0,209,115,.45);
-  }
-  .ok:hover{
-      transform:scale(1.07);
-      box-shadow:0px 0px 12px rgba(0,209,115,.75);
-  }
-  .pendiente{
-      background:linear-gradient(135deg,#ff4f4f,#d63131);
-      box-shadow:0px 0px 6px rgba(255,82,82,.45);
-  }
-  .pendiente:hover{
-      transform:scale(1.07);
-      box-shadow:0px 0px 12px rgba(255,82,82,.75);
-  }
+/* ==================== TABLA ==================== */
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+  background:white;
+  border-radius:5px;
+  overflow:hidden;
+}
+th{
+  background:#102B6B;
+  color:white;
+  padding:10px;
+}
+td{
+  padding:8px;
+  border:1px solid #e2e5ea;
+  text-align:center;
+}
 
-  /* Botón enviar correo individual */
-  .btn-mail{
-      background:#1a3d7c;color:white;border:none;padding:5px 10px;border-radius:6px;
-      cursor:pointer;font-size:12px;transition:.2s;
-  }
-  .btn-mail:hover{background:#142b57;transform:scale(1.05);}
+/* ==================== SEMÁFOROS NEW DESIGN ==================== */
+.badge{
+  padding:6px 12px;
+  border-radius:12px;
+  font-weight:bold;
+  font-size:13px;
+  display:inline-block;
+}
+.ok{
+  background:linear-gradient(135deg,#16d47b,#0fa95d);
+  color:white;
+  box-shadow:0 0 6px rgba(22,212,123,.45);
+}
+.pendiente{
+  background:#ff5454;
+  color:white;
+  box-shadow:0 0 6px rgba(255,84,84,.35);
+}
 
-  .bottom-controls{margin-top:20px;display:flex;gap:12px;}
+/* ==================== CONTROLES INFERIORES ==================== */
+.bottom-controls{
+  margin-top:20px;
+  display:flex;
+  gap:10px;
+}
 </style>
 </head>
 <body>
 
 <h2>📊 Panel Reselling – Gestión de Facturación</h2>
 
+<!-- ======================= FILTROS ======================= -->
 <div class="controls">
-  <label>Filtrar cliente:
+  <label>Cliente:
     <select id="filterCliente"><option value="">Todos</option></select>
   </label>
-  <label>Filtrar periodo:
-    <input type="month" id="filterPeriodo" />
+
+  <label>Periodo:
+    <input type="month" id="filterPeriodo">
   </label>
-  <button onclick="filtrar()">Aplicar filtros</button>
-  <button onclick="limpiarFiltros()">Limpiar filtros</button>
-  <button onclick="enviarMasivo()">📤 Enviar correos masivos</button>
+
+  <button onclick="filtrar()">Aplicar</button>
+  <button onclick="limpiarFiltros()">Restablecer</button>
+
+  <button onclick="enviarMasivo()">📩 Enviar correos masivos (solo verdes)</button>
 </div>
 
+<!-- ======================= TABLA ======================= -->
 <table>
 <thead>
 <tr>
-  <th>Cliente</th>
-  <th>Periodo</th>
-  <th>Monto consumo Google (USD)</th>
-  <th>Costo Consumo (USD)</th>
-  <th>Utilidad Zenta (USD)</th>
-  <th>Factura Emitida</th>
-  <th>Informe Google Generado</th>
-  <th>Enviar correo</th> <!-- 📩 Nueva columna -->
+<th>Cliente</th>
+<th>Periodo</th>
+<th>Consumo Google USD</th>
+<th>Costo USD</th>
+<th>Utilidad Zenta %</th>
+<th>Factura Emitida</th>
+<th>Inf. Google</th>
 </tr>
 </thead>
 <tbody id="tablaFacturas"></tbody>
 </table>
 
+<!-- ======================= INFORME FINANZAS ======================= -->
 <div class="bottom-controls">
-  <label>Cliente para informe finanzas:
-    <select id="selectClienteInforme">
-      <option value="">Seleccionar cliente</option>
-    </select>
+  <label>Informe Finanzas Cliente:
+    <select id="selectClienteInforme"><option value="">Selecciona</option></select>
   </label>
-  <button onclick="generarInforme()">📄 Generar Informe Finanzas</button>
+  <button onclick="generarInforme()">📄 Generar informe finanzas</button>
 </div>
 
 <script>
-/* ---------------- Datos simulados 100 registros ---------------- */
-const clientes=["Microsoft","CMPC","Oracle","Google","Apple","BancoEstado","Entel","Codelco","Falabella","Sodimac","LATAM","Scotiabank","Claro","Ripley","Banco de Chile"];
+/* === Generación de datos === */
+const clientes=["Microsoft","CMPC","Oracle","Google","Apple","BancoEstado","Entel","Codelco",
+"Falabella","Sodimac","LATAM","Scotiabank","Claro","Ripley","Banco de Chile"];
 const facturas=[];
-function randomBetween(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+
+function rnd(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
 
 for(let i=0;i<100;i++){
- let cliente=clientes[randomBetween(0,clientes.length-1)];
- let year=2023+randomBetween(0,2);
- let m=randomBetween(1,12);
- let mes=m<10?"0"+m:m;
- let periodo=`${year}-${mes}`;
- let monto=randomBetween(5000,50000);
- let costo=Math.floor(monto*(randomBetween(50,90)/100));
- let utilidad=monto-costo;
- let factura=Math.random()<0.8;
- let infGen=Math.random()<0.7;
+  let c=clientes[rnd(0,clientes.length-1)];
+  let y=2024+rnd(0,1);
+  let m=rnd(1,12); m=m<10?"0"+m:m;
+  let consumo=rnd(5000,60000);
+  let costo=Math.floor(consumo*(rnd(50,90)/100));
+  let utilidad=((consumo-costo)/consumo*100).toFixed(2);
 
- facturas.push({cliente,periodo,monto,costo,utilidad,factura,infGen,email:cliente.toLowerCase()+"@mail.com"});
+  facturas.push({
+    cliente:c, periodo:`${y}-${m}`,
+    consumo,costo, utilidad,
+    factura:Math.random()<0.8,
+    informe:Math.random()<0.75
+  });
 }
 
-/* ---------------- Render tabla con botón solo si ambos verdes ---------------- */
-function renderTabla(data){
- let html="";
- data.forEach((f,i)=>{
-
- let puedeEnviar=(f.factura && f.infGen); // Solo si 2 semáforos verdes
- let boton=puedeEnviar?`<button class="btn-mail">📩 Enviar</button>`:"";
-
- html+=`
-  <tr>
-    <td>${f.cliente}</td>
-    <td>${f.periodo}</td>
-    <td>$${f.monto.toLocaleString()}</td>
-    <td>$${f.costo.toLocaleString()}</td>
-    <td>$${f.utilidad.toLocaleString()}</td>
-
-    <td>
-      <span class="semaforo ${f.factura?'ok':'pendiente'}">${f.factura?'OK':'Pendiente'}</span>
-      ${f.factura?`<a href="docs/factura_${i}.pdf" target="_blank">📄</a>`:""}
-    </td>
-
-    <td>
-      <span class="semaforo ${f.infGen?'ok':'pendiente'}">${f.infGen?'OK':'Pendiente'}</span>
-      ${f.infGen?`<a href="docs/informe_${i}.pdf" target="_blank">📄</a>`:""}
-    </td>
-
-    <td>${boton}</td>
-  </tr>`;
- });
- document.getElementById("tablaFacturas").innerHTML=html;
+/* Carga selects */
+function initSelects(){
+  const set=new Set();
+  facturas.forEach(f=>{
+    if(!set.has(f.cliente)){
+      set.add(f.cliente);
+      document.getElementById("filterCliente").innerHTML+=`<option>${f.cliente}</option>`;
+      document.getElementById("selectClienteInforme").innerHTML+=`<option>${f.cliente}</option>`;
+    }
+  });
 }
 
-/* ---------------- Filtros ---------------- */
+/* Render tabla */
+function render(datos){
+  let h="";
+  datos.forEach((f,i)=>{
+    h+=`<tr>
+<td>${f.cliente}</td>
+<td>${f.periodo}</td>
+<td>$${f.consumo.toLocaleString()}</td>
+<td>$${f.costo.toLocaleString()}</td>
+<td>${f.utilidad}%</td>
+
+<td>
+<span class="badge ${f.factura?'ok':'pendiente'}">${f.factura?'OK':'Pendiente'}</span>
+${f.factura?`<a href="docs/fact_${i}.pdf" target="_blank">📄</a>`:""}
+</td>
+
+<td>
+<span class="badge ${f.informe?'ok':'pendiente'}">${f.informe?'OK':'Pendiente'}</span>
+${f.informe?`<a href="docs/info_${i}.pdf" target="_blank">📄</a>`:""}
+</td>
+</tr>`;
+  });
+document.getElementById("tablaFacturas").innerHTML=h;
+}
+
+/* Filtros */
 function filtrar(){
- let c=document.getElementById("filterCliente").value;
- let p=document.getElementById("filterPeriodo").value;
- let r=facturas;
- if(c) r=r.filter(f=>f.cliente===c);
- if(p) r=r.filter(f=>f.periodo===p);
- renderTabla(r);
+  let c=document.getElementById("filterCliente").value;
+  let p=document.getElementById("filterPeriodo").value;
+  let d=facturas.filter(f=>(!c||f.cliente===c)&&(!p||f.periodo===p));
+  render(d);
 }
-function limpiarFiltros(){
- document.getElementById("filterCliente").value="";
- document.getElementById("filterPeriodo").value="";
- renderTabla(facturas);
-}
+function limpiarFiltros(){document.getElementById("filterCliente").value="";
+document.getElementById("filterPeriodo").value=""; render(facturas);}
 
-/* ---------------- Masivo ---------------- */
+/* Masivo */
 function enviarMasivo(){
- let ok=facturas.filter(f=>f.factura && f.infGen);
- if(!ok.length) return alert("No hay casos con ambos OK.");
- let txt="Se enviarán correos a:\n\n";
- ok.forEach(f=>txt+=`${f.cliente} - ${f.periodo}\n`);
- alert(txt);
+  let ok=facturas.filter(f=>f.factura&&f.informe);
+  if(!ok.length) return alert("No hay registros doble verde 🟢🟢");
+  alert("Se enviarían correos a:\n"+ok.map(f=>`${f.cliente} - ${f.periodo}`).join("\n"));
 }
 
-/* ---------------- Informe Finanzas ---------------- */
+/* Informe finanzas */
 function generarInforme(){
- let c=document.getElementById("selectClienteInforme").value;
- if(!c) return alert("Seleccione cliente.");
- let data=facturas.filter(f=>f.cliente===c);
-
- let consumo = data.reduce((t,x)=>t+x.monto,0);
- let costo   = data.reduce((t,x)=>t+x.costo,0);
- let utilidad= data.reduce((t,x)=>t+x.utilidad,0);
- let pct=(utilidad/consumo*100).toFixed(2);
-
- alert(
-   `📄 Informe Finanzas — ${c}\n\n`+
-   `Consumo total Google: USD ${consumo}\n`+
-   `Costo total Zenta: USD ${costo}\n`+
-   `Utilidad total: USD ${utilidad}\n`+
-   `% Margen: ${pct}%`
- );
+  let c=document.getElementById("selectClienteInforme").value;
+  if(!c)return alert("Seleccione cliente");
+  let d=facturas.filter(f=>f.cliente===c);
+  let consumo=d.reduce((a,b)=>a+b.consumo,0);
+  let costo=d.reduce((a,b)=>a+b.costo,0);
+  let util=((consumo-costo)/consumo*100).toFixed(2);
+  alert(`📄 Informe Finanzas\nCliente: ${c}\nConsumo total: $${consumo}\nCosto total: $${costo}\nUtilidad: ${util}%`);
 }
 
-/* ---------- iniciar -------- */
-window.onload=()=>{
- let sF=document.getElementById("filterCliente");
- let sI=document.getElementById("selectClienteInforme");
- let set=new Set();
- facturas.forEach(f=>{if(!set.has(f.cliente)){set.add(f.cliente);sF.innerHTML+=`<option>${f.cliente}</option>`;sI.innerHTML+=`<option>${f.cliente}</option>`;}});
- renderTabla(facturas);
-}
+window.onload=()=>{initSelects(); render(facturas);}
 </script>
-
 </body>
 </html>
