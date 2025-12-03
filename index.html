@@ -171,8 +171,15 @@ function renderTabla(data){
         <td>$${f.monto.toLocaleString()}</td>
         <td>$${f.costo.toLocaleString()}</td>
         <td>$${f.utilidad.toLocaleString()}</td>
-        <td><span class="${f.factura?'ok':'pendiente'}">${f.factura?'OK':'Pendiente'}</span></td>
-        <td><span class="${f.infGen?'ok':'pendiente'}">${f.infGen?'OK':'Pendiente'}</span></td>
+        <td>
+    <span class="${f.factura?'ok':'pendiente'}">${f.factura?'OK':'Pendiente'}</span>
+    ${f.factura ? `<a href="docs/factura_${i}.pdf" target="_blank">📄</a>` : ""}
+</td>
+
+<td>
+    <span class="${f.infGen?'ok':'pendiente'}">${f.infGen?'OK':'Pendiente'}</span>
+    ${f.infGen ? `<a href="docs/informe_${i}.pdf" target="_blank">📄</a>` : ""}
+</td>
         <td>${ (f.factura && f.infGen) ? '<span class="pdf-icon">📄</span>' : '' }</td>
       </tr>`;
   });
