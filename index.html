@@ -6,19 +6,30 @@
 
 <style>
 body{
-  font-family: Arial, sans-serif;
+  font-family: "Segoe UI", sans-serif;
   padding:20px;
-  background:#f5f7fa;
-  color:#2a2a2a;
+  background:#0a0a0a;
+  color:#e6e6e6;
+}
+
+header{
+    display:flex;
+    align-items:center;
+    gap:15px;
+    margin-bottom:12px;
+}
+
+header img{
+    height:42px;
 }
 
 h2{
-  color:#0F1C3F;
   font-size:22px;
   font-weight:700;
+  color:#00E0FF;
 }
 
-/* ==================== FILTROS ==================== */
+/* ==================== FILTROS DARK ==================== */
 .controls{
   margin-bottom:18px;
   display:flex;
@@ -28,83 +39,84 @@ h2{
 .controls select,.controls input{
   padding:8px 10px;
   border-radius:5px;
-  border:1px solid #d0d4dc;
+  border:1px solid #444;
+  background:#111;
+  color:white;
 }
 .controls button{
-  background:#102B6B;
-  color:white;
+  background:#00b7ff;
+  color:black;
+  font-weight:600;
   border:none;
   padding:8px 14px;
   border-radius:5px;
   cursor:pointer;
 }
-.controls button:hover{background:#0C214F}
+.controls button:hover{background:#00d5ff}
 
 /* ==================== TABLA ==================== */
 table{
   width:100%;
   border-collapse:collapse;
   margin-top:10px;
-  background:white;
-  border-radius:5px;
+  background:#111;
+  border-radius:6px;
   overflow:hidden;
 }
 th{
-  background:#102B6B;
-  color:white;
+  background:#00B7FF;
+  color:black;
   padding:10px;
+  font-size:14px;
+  font-weight:bold;
 }
 td{
   padding:8px;
-  border:1px solid #e2e5ea;
+  border:1px solid #181818;
   text-align:center;
 }
 
-/* ==================== SEMÁFOROS NEW DESIGN ==================== */
+/* ==================== SEMÁFOROS DARK ==================== */
 .badge{
   padding:6px 12px;
-  border-radius:12px;
+  border-radius:10px;
   font-weight:bold;
-  font-size:13px;
+  font-size:12px;
   display:inline-block;
 }
 .ok{
-  background:linear-gradient(135deg,#16d47b,#0fa95d);
-  color:white;
-  box-shadow:0 0 6px rgba(22,212,123,.45);
+  background:linear-gradient(135deg,#00ff88,#00c26a);
+  color:black;
+  box-shadow:0 0 8px rgba(0,255,135,.45);
 }
 .pendiente{
-  background:#ff5454;
+  background:linear-gradient(135deg,#ff4646,#b30000);
   color:white;
-  box-shadow:0 0 6px rgba(255,84,84,.35);
+  box-shadow:0 0 6px rgba(255,70,70,.35);
 }
 
-/* ==================== CONTROLES INFERIORES ==================== */
+/* ==================== SECCIÓN BAJA ==================== */
 .bottom-controls{
   margin-top:20px;
   display:flex;
-  gap:10px;
+  gap:12px;
 }
 </style>
 </head>
 <body>
 
-<h2>📊 Panel Reselling – Gestión de Facturación</h2>
+<header>
+    <img src="https://zentagroup.com/wp-content/uploads/2024/03/cropped-zenta-logo-azul-300x300.png">
+    <h2>Panel Reselling – Gestión de Facturación</h2>
+</header>
 
 <!-- ======================= FILTROS ======================= -->
 <div class="controls">
-  <label>Cliente:
-    <select id="filterCliente"><option value="">Todos</option></select>
-  </label>
-
-  <label>Periodo:
-    <input type="month" id="filterPeriodo">
-  </label>
-
-  <button onclick="filtrar()">Aplicar</button>
+  <select id="filterCliente"><option value="">Todos los clientes</option></select>
+  <input type="month" id="filterPeriodo">
+  <button onclick="filtrar()">Filtrar</button>
   <button onclick="limpiarFiltros()">Restablecer</button>
-
-  <button onclick="enviarMasivo()">📩 Enviar correos masivos (solo verdes)</button>
+  <button onclick="enviarMasivo()">📩 Enviar masivo (doble verde)</button>
 </div>
 
 <!-- ======================= TABLA ======================= -->
@@ -113,11 +125,12 @@ td{
 <tr>
 <th>Cliente</th>
 <th>Periodo</th>
-<th>Consumo Google USD</th>
-<th>Costo USD</th>
-<th>Utilidad Zenta %</th>
+<th>Monto Consumo Google (USD)</th>
+<th>Costo Consumo (USD)</th>
+<th>Utilidad (%)</th>
 <th>Factura Emitida</th>
 <th>Inf. Google</th>
+<th>Enviar Correo</th>
 </tr>
 </thead>
 <tbody id="tablaFacturas"></tbody>
@@ -125,103 +138,93 @@ td{
 
 <!-- ======================= INFORME FINANZAS ======================= -->
 <div class="bottom-controls">
-  <label>Informe Finanzas Cliente:
-    <select id="selectClienteInforme"><option value="">Selecciona</option></select>
+  <label>Informe Finanzas:
+    <select id="selectClienteInforme"><option value="">Seleccionar</option></select>
   </label>
-  <button onclick="generarInforme()">📄 Generar informe finanzas</button>
+  <button onclick="generarInforme()">📄 Generar Informe</button>
 </div>
 
 <script>
-/* === Generación de datos === */
-const clientes=["Microsoft","CMPC","Oracle","Google","Apple","BancoEstado","Entel","Codelco",
-"Falabella","Sodimac","LATAM","Scotiabank","Claro","Ripley","Banco de Chile"];
+/* ========== DATOS GENERADOS ========== */
+const clientes=["Microsoft","CMPC","Oracle","Google","Apple","BancoEstado","Entel","Codelco","LATAM","Scotiabank","Claro","Banco de Chile"];
 const facturas=[];
 
 function rnd(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
 
 for(let i=0;i<100;i++){
   let c=clientes[rnd(0,clientes.length-1)];
-  let y=2024+rnd(0,1);
-  let m=rnd(1,12); m=m<10?"0"+m:m;
+  let y=2025; let m=rnd(1,12); m=m<10?"0"+m:m;
   let consumo=rnd(5000,60000);
-  let costo=Math.floor(consumo*(rnd(50,90)/100));
-  let utilidad=((consumo-costo)/consumo*100).toFixed(2);
+  let costo=rnd(3000,consumo-1000);
+  let utilidad=((consumo-costo)/consumo*100).toFixed(2); // ← CALCULO REAL
 
   facturas.push({
     cliente:c, periodo:`${y}-${m}`,
     consumo,costo, utilidad,
-    factura:Math.random()<0.8,
-    informe:Math.random()<0.75
+    factura:Math.random()<0.78,
+    informe:Math.random()<0.70
   });
 }
 
-/* Carga selects */
+/* ========== Carga selectores ========== */
 function initSelects(){
-  const set=new Set();
+  const s=new Set();
   facturas.forEach(f=>{
-    if(!set.has(f.cliente)){
-      set.add(f.cliente);
-      document.getElementById("filterCliente").innerHTML+=`<option>${f.cliente}</option>`;
-      document.getElementById("selectClienteInforme").innerHTML+=`<option>${f.cliente}</option>`;
+    if(!s.has(f.cliente)){
+      s.add(f.cliente);
+      filterCliente.innerHTML+=`<option>${f.cliente}</option>`;
+      selectClienteInforme.innerHTML+=`<option>${f.cliente}</option>`;
     }
   });
 }
 
-/* Render tabla */
-function render(datos){
-  let h="";
-  datos.forEach((f,i)=>{
-    h+=`<tr>
+/* ========== Render Tabla ========== */
+function render(data){
+ let html="";
+ data.forEach(f=>{
+ let enviar = (f.factura && f.informe) ? `<button style="background:#00ff9d;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;">Enviar</button>`:"—";
+ html+=`
+<tr>
 <td>${f.cliente}</td>
 <td>${f.periodo}</td>
 <td>$${f.consumo.toLocaleString()}</td>
 <td>$${f.costo.toLocaleString()}</td>
 <td>${f.utilidad}%</td>
 
-
-<td>
-<span class="badge ${f.factura?'ok':'pendiente'}">${f.factura?'OK':'Pendiente'}</span>
-${f.factura?`<a href="docs/fact_${i}.pdf" target="_blank">📄</a>`:""}
-</td>
-
-<td>
-<span class="badge ${f.informe?'ok':'pendiente'}">${f.informe?'OK':'Pendiente'}</span>
-${f.informe?`<a href="docs/info_${i}.pdf" target="_blank">📄</a>`:""}
-</td>
+<td><span class="badge ${f.factura?'ok':'pendiente'}">${f.factura?'OK':'No emitida'}</span></td>
+<td><span class="badge ${f.informe?'ok':'pendiente'}">${f.informe?'OK':'Pendiente'}</span></td>
+<td>${enviar}</td>
 </tr>`;
-  });
-document.getElementById("tablaFacturas").innerHTML=h;
+ });
+ tablaFacturas.innerHTML=html;
 }
 
-/* Filtros */
+/* ========== Filtros ========== */
 function filtrar(){
-  let c=document.getElementById("filterCliente").value;
-  let p=document.getElementById("filterPeriodo").value;
-  let d=facturas.filter(f=>(!c||f.cliente===c)&&(!p||f.periodo===p));
-  render(d);
+ let c=filterCliente.value, p=filterPeriodo.value;
+ render(facturas.filter(f=>(!c||f.cliente===c)&&(!p||f.periodo===p)));
 }
-function limpiarFiltros(){document.getElementById("filterCliente").value="";
-document.getElementById("filterPeriodo").value=""; render(facturas);}
+function limpiarFiltros(){filterCliente.value="";filterPeriodo.value="";render(facturas);}
 
-/* Masivo */
+/* ========== Envío masivo Solo verde/verde ========== */
 function enviarMasivo(){
-  let ok=facturas.filter(f=>f.factura&&f.informe);
-  if(!ok.length) return alert("No hay registros doble verde 🟢🟢");
-  alert("Se enviarían correos a:\n"+ok.map(f=>`${f.cliente} - ${f.periodo}`).join("\n"));
+ let x=facturas.filter(f=>f.factura&&f.informe);
+ if(!x.length) return alert("No hay clientes doble verde.");
+ alert("Se enviarían correos a:\n"+x.map(f=>`${f.cliente} - ${f.periodo}`).join("\n"));
 }
 
-/* Informe finanzas */
+/* ========== Informe Finanzas ========== */
 function generarInforme(){
-  let c=document.getElementById("selectClienteInforme").value;
-  if(!c)return alert("Seleccione cliente");
-  let d=facturas.filter(f=>f.cliente===c);
-  let consumo=d.reduce((a,b)=>a+b.consumo,0);
-  let costo=d.reduce((a,b)=>a+b.costo,0);
-  let util=((consumo-costo)/consumo*100).toFixed(2);
-  alert(`📄 Informe Finanzas\nCliente: ${c}\nConsumo total: $${consumo}\nCosto total: $${costo}\nUtilidad: ${util}%`);
+ let c=selectClienteInforme.value;
+ if(!c)return alert("Selecciona cliente");
+ let d=facturas.filter(f=>f.cliente===c);
+ let consumo=d.reduce((a,b)=>a+b.consumo,0);
+ let costo=d.reduce((a,b)=>a+b.costo,0);
+ let util=((consumo-costo)/consumo*100).toFixed(2);
+ alert(`📄 Informe Finanzas Zenta\nCliente: ${c}\nConsumo total: $${consumo.toLocaleString()}\nCosto total: $${costo.toLocaleString()}\nUtilidad Total: ${util}%`);
 }
 
-window.onload=()=>{initSelects(); render(facturas);}
+window.onload=()=>{initSelects();render(facturas);}
 </script>
 </body>
 </html>
