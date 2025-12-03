@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Panel Reselling - Gestión de Facturas</title>
+
+<style>
+    body { font-family: Arial; padding: 25px; background:#f4f8ff;}
+    h2 { color:#003b87; font-size:26px; }
+
+    table { width:100%; border-collapse: collapse; margin-top: 20px;}
+    th, td { border:1px solid #ccc; padding:10px; text-align:center;}
+    th { background:#003b87; color:white; font-size:15px;}
+
+    .ok {background:#27ae60; color:white; padding:6px 12px; border-radius:50px;}
+    .pendiente {background:#e74c3c; color:white; padding:6px 12px; border-radius:50px;}
+
+    button {
+        padding:8px 16px; background:#007bff; color:white; border:none;
+        border-radius:6px; font-size:14px; cursor:pointer;
+    }
+    button:hover { background:#0056c9; }
+</style>
+</head>
+
+<body>
+<h2>📊 Panel Reselling – Gestión de Facturación</h2>
+
+<table>
+<thead>
+<tr>
+    <th>Cliente</th>
+    <th>Periodo</th>
+    <th>Monto (USD)</th>
+    <th>Factura Emitida</th>
+    <th>Informe Google Generado</th>
+    <th>Informe Google Validado</th>
+    <th>Enviar Correo</th>
+</tr>
+</thead>
+
+<tbody id="tablaFacturas"></tbody>
+</table>
+
+<script>
+// ▶ Datos modificables fácilmente ▼
+const facturas = [
+    {cliente:"Microsoft", periodo:"Oct 2025", monto:42000, factura:true, infGen:true, infVal:false, email:"ms@microsoft.com"},
+    {cliente:"CMPC", periodo:"Oct 2025", monto:12000, factura:false, infGen:false, infVal:false, email:"pagos@cmpc.cl"},
+    {cliente:"Oracle", periodo:"Oct 2025", monto:25000, factura:true, infGen:true, infVal:true, email:"finance@oracle.com"}
+];
+
+// Render automático de la tabla
+function cargarTabla(){
+    let html="";
+    facturas.forEach((f, i)=>{
+        html+=`
+        <tr>
+            <td>${f.cliente}</td>
+            <td>${f.periodo}</td>
+            <td>$${f.monto.toLocaleString()}</td>
+            <td><span class="${f.factura?'ok':'pendiente'}">${f.factura?'OK':'Pendiente'}</span></td>
+            <td><span class="${f.infGen?'ok':'pendiente'}">${f.infGen?'OK':'Pendiente'}</span></td>
+            <td><span class="${f.infVal?'ok':'pendiente'}">${f.infVal?'OK':'Pendiente'}</span></td>
+            <td><button onclick="enviarCorreo(${i})">Enviar</button></td>
+        </tr>`;
+    });
+    document.getElementById("tablaFacturas").innerHTML = html;
+}
+
+// Botón enviar (simulación)
+function enviarCorreo(i){
+    const f = facturas[i];
+    alert(`📩 Enviando correo a ${f.email}
+Cliente: ${f.cliente}
+Periodo: ${f.periodo}
+Monto: USD ${f.monto}
+Factura: ${f.factura?'OK':'Pendiente'}
+Informe Google Gen: ${f.infGen?'OK':'Pendiente'}
+Informe Validado: ${f.infVal?'OK':'Pendiente'}
+`);
+}
+
+cargarTabla();
+</script>
+
+</body>
+</html>
