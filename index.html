@@ -2,86 +2,244 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Panel Reselling - Gestión de Facturas</title>
-
+<title>Panel Reselling – Gestión de Facturas</title>
 <style>
-    body { font-family: Arial; padding: 25px; background:#f4f8ff;}
-    h2 { color:#003b87; font-size:26px; }
-
-    table { width:100%; border-collapse: collapse; margin-top: 20px;}
-    th, td { border:1px solid #ccc; padding:10px; text-align:center;}
-    th { background:#003b87; color:white; font-size:15px;}
-
-    .ok {background:#27ae60; color:white; padding:6px 12px; border-radius:50px;}
-    .pendiente {background:#e74c3c; color:white; padding:6px 12px; border-radius:50px;}
-
-    button {
-        padding:8px 16px; background:#007bff; color:white; border:none;
-        border-radius:6px; font-size:14px; cursor:pointer;
-    }
-    button:hover { background:#0056c9; }
+  body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background: #f8f9fa;
+    color: #333;
+  }
+  h2 {
+    color: #1a3d7c; /* color principal Zenta – ajustar si hay otro */
+  }
+  .controls {
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+  .controls select, .controls input {
+    padding: 6px 10px;
+    font-size: 14px;
+  }
+  .controls button {
+    padding: 8px 14px;
+    background: #1a3d7c; /* primario Zenta */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .controls button:hover {
+    background: #16345d;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: center;
+  }
+  th {
+    background: #1a3d7c;
+    color: white;
+  }
+  .ok {
+    background: #28a745;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+  .pendiente {
+    background: #dc3545;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+  .pdf-icon {
+    cursor: pointer;
+    color: #1a3d7c;
+    font-size: 18px;
+  }
+  .bottom-controls {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+  }
 </style>
 </head>
-
 <body>
+
 <h2>📊 Panel Reselling – Gestión de Facturación</h2>
+
+<div class="controls">
+  <label>Filtrar cliente:
+    <select id="filterCliente">
+      <option value="">Todos</option>
+    </select>
+  </label>
+  <label>Filtrar periodo:
+    <input type="month" id="filterPeriodo" />
+  </label>
+  <button onclick="filtrar()">Aplicar filtros</button>
+  <button onclick="limpiarFiltros()">Limpiar filtros</button>
+  <button onclick="enviarMasivo()">📤 Enviar correos masivos</button>
+</div>
 
 <table>
 <thead>
 <tr>
-    <th>Cliente</th>
-    <th>Periodo</th>
-    <th>Monto (USD)</th>
-    <th>Factura Emitida</th>
-    <th>Informe Google Generado</th>
-    <th>Informe Google Validado</th>
-    <th>Enviar Correo</th>
+  <th>Cliente</th>
+  <th>Periodo</th>
+  <th>Monto consumo Google (USD)</th>
+  <th>Costo Consumo (USD)</th>
+  <th>Utilidad Zenta (USD)</th>
+  <th>Factura Emitida</th>
+  <th>Informe Google Generado</th>
+  <th>PDF</th>
 </tr>
 </thead>
-
 <tbody id="tablaFacturas"></tbody>
 </table>
 
+<div class="bottom-controls">
+  <label>Cliente para informe finanzas:
+    <select id="selectClienteInforme">
+      <option value="">Seleccionar cliente</option>
+    </select>
+  </label>
+  <button onclick="generarInforme()">Generar Informe Finanzas</button>
+</div>
+
 <script>
-// ▶ Datos modificables fácilmente ▼
-const facturas = [
-    {cliente:"Microsoft", periodo:"Oct 2025", monto:42000, factura:true, infGen:true, infVal:false, email:"ms@microsoft.com"},
-    {cliente:"CMPC", periodo:"Oct 2025", monto:12000, factura:false, infGen:false, infVal:false, email:"pagos@cmpc.cl"},
-    {cliente:"Oracle", periodo:"Oct 2025", monto:25000, factura:true, infGen:true, infVal:true, email:"finance@oracle.com"}
-];
+// — Datos de ejemplo: generar 100 clientes con distintos periodos
+const clientes = ["Microsoft","CMPC","Oracle","Google","Apple","BancoEstado","Entel","Codelco","Falabella","Sodimac","LATAM","Scotiabank","Claro","Ripley","Banco de Chile"];
+const facturas = [];
 
-// Render automático de la tabla
-function cargarTabla(){
-    let html="";
-    facturas.forEach((f, i)=>{
-        html+=`
-        <tr>
-            <td>${f.cliente}</td>
-            <td>${f.periodo}</td>
-            <td>$${f.monto.toLocaleString()}</td>
-            <td><span class="${f.factura?'ok':'pendiente'}">${f.factura?'OK':'Pendiente'}</span></td>
-            <td><span class="${f.infGen?'ok':'pendiente'}">${f.infGen?'OK':'Pendiente'}</span></td>
-            <td><span class="${f.infVal?'ok':'pendiente'}">${f.infVal?'OK':'Pendiente'}</span></td>
-            <td><button onclick="enviarCorreo(${i})">Enviar</button></td>
-        </tr>`;
-    });
-    document.getElementById("tablaFacturas").innerHTML = html;
+function randomBetween(min,max) { return Math.floor(Math.random()*(max-min+1))+min; }
+
+for (let i=0; i<100; i++) {
+  const cliente = clientes[ randomBetween(0, clientes.length-1) ];
+  const year = 2023 + randomBetween(0,2);  // 2023 a 2025
+  const month = randomBetween(1,12);
+  const mes = month < 10 ? "0"+month : month;
+  const periodo = `${year}-${mes}`;
+  const monto = randomBetween(5000,50000);
+  const costo = Math.floor(monto * (randomBetween(50,90)/100)); // 50–90% del consumo
+  const utilidad = monto - costo;
+  const factura = Math.random() < 0.8; // 80% chance
+  const infGen = Math.random() < 0.7;  // 70% chance
+  facturas.push({
+    cliente, periodo, monto, costo, utilidad,
+    factura, infGen,
+    email: cliente.toLowerCase().replace(/\s+/g,"") + "@empresa.com"
+  });
 }
 
-// Botón enviar (simulación)
-function enviarCorreo(i){
-    const f = facturas[i];
-    alert(`📩 Enviando correo a ${f.email}
-Cliente: ${f.cliente}
-Periodo: ${f.periodo}
-Monto: USD ${f.monto}
-Factura: ${f.factura?'OK':'Pendiente'}
-Informe Google Gen: ${f.infGen?'OK':'Pendiente'}
-Informe Validado: ${f.infVal?'OK':'Pendiente'}
-`);
+// Cargar select de filtro y select de informe
+function initSelects(){
+  const s1 = document.getElementById("filterCliente");
+  const s2 = document.getElementById("selectClienteInforme");
+  const seen = new Set();
+  facturas.forEach(f=>{
+    if (!seen.has(f.cliente)) {
+      seen.add(f.cliente);
+      const opt = document.createElement("option");
+      opt.value = f.cliente;
+      opt.innerText = f.cliente;
+      s1.appendChild(opt);
+      const opt2 = opt.cloneNode(true);
+      s2.appendChild(opt2);
+    }
+  });
 }
 
-cargarTabla();
+function renderTabla(data){
+  let html = "";
+  data.forEach((f,i)=>{
+    html += `
+      <tr>
+        <td>${f.cliente}</td>
+        <td>${f.periodo}</td>
+        <td>$${f.monto.toLocaleString()}</td>
+        <td>$${f.costo.toLocaleString()}</td>
+        <td>$${f.utilidad.toLocaleString()}</td>
+        <td><span class="${f.factura?'ok':'pendiente'}">${f.factura?'OK':'Pendiente'}</span></td>
+        <td><span class="${f.infGen?'ok':'pendiente'}">${f.infGen?'OK':'Pendiente'}</span></td>
+        <td>${ (f.factura && f.infGen) ? '<span class="pdf-icon">📄</span>' : '' }</td>
+      </tr>`;
+  });
+  document.getElementById("tablaFacturas").innerHTML = html;
+}
+
+function filtrar(){
+  const cli = document.getElementById("filterCliente").value;
+  const per = document.getElementById("filterPeriodo").value;
+  let res = facturas;
+  if (cli) res = res.filter(f => f.cliente === cli);
+  if (per) res = res.filter(f => f.periodo === per);
+  renderTabla(res);
+}
+
+function limpiarFiltros(){
+  document.getElementById("filterCliente").value = "";
+  document.getElementById("filterPeriodo").value = "";
+  renderTabla(facturas);
+}
+
+function enviarMasivo(){
+  const pendientes = facturas.filter(f => f.factura && f.infGen);
+  if (!pendientes.length) {
+    alert("No hay hitos con ambos semáforos en verde para enviar.");
+    return;
+  }
+  // Simulación de envío masivo
+  let msg = "Se enviarán correos a los siguientes clientes:\n\n";
+  pendientes.forEach(f => {
+    msg += `${f.cliente} — ${f.periodo} — USD ${f.monto}\n`;
+  });
+  alert(msg + "\n(En producción, aquí harías el envío real.)");
+}
+
+function generarInforme(){
+  const cliente = document.getElementById("selectClienteInforme").value;
+  if (!cliente) {
+    alert("Selecciona un cliente.");
+    return;
+  }
+  const datos = facturas.filter(f => f.cliente === cliente);
+  if (!datos.length) {
+    alert("No hay registros para ese cliente.");
+    return;
+  }
+  // Generar informe simple
+  let totalConsumo = 0, totalCosto = 0, totalUtilidad = 0;
+  datos.forEach(f => {
+    totalConsumo += f.monto;
+    totalCosto += f.costo;
+    totalUtilidad += f.utilidad;
+  });
+  const porcentaje = ((totalUtilidad / totalConsumo) * 100).toFixed(2);
+  alert(
+    `Informe Finanzas — ${cliente}\n\n` +
+    `Consumo Google total: USD ${totalConsumo}\n` +
+    `Costo Zenta total: USD ${totalCosto}\n` +
+    `Utilidad Zenta total: USD ${totalUtilidad}\n` +
+    `% Utilidad: ${porcentaje}%`
+  );
+}
+
+window.onload = function(){
+  initSelects();
+  renderTabla(facturas);
+};
 </script>
 
 </body>
